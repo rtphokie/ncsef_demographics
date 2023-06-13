@@ -2,7 +2,9 @@ import os
 import pickle
 import re
 from difflib import SequenceMatcher
+from pprint import pprint
 
+import numpy as np
 import pandas as pd
 import requests_cache
 
@@ -383,7 +385,7 @@ def school_pop_and_race():
     df_race['altotal'] = df_race['Male cnt'] + df_race['Female cnt']
     for column in df_race.columns:
         if ' pct' in column:
-            df_race[column]=df_race[column]*100
+            df_race[column] = df_race[column] * 100
         if ' cnt' in column:
             df_race.drop([column], axis=1, inplace=True)
 
@@ -392,6 +394,78 @@ def school_pop_and_race():
     df_population = pd.concat([df_race[['County', 'Total']], df_nonpub])
     df_population = df_population.drop_duplicates().groupby('County', sort=False, as_index=False).sum()
     return df_population, df_race
+
+
+def fairs_by_race_by_county():
+    df = get_child_fair_normalized_regional_data(year=2023)
+    df.GENDER.fillna('Prefer Not to Answer')
+
+    df = df.rename(columns={'WHAT IS YOUR RACE?': 'race'})
+    DPImapping = {'Asian Indian': 'ASIAN',
+                  'Other Asian': 'ASIAN',
+                  'Korean': 'ASIAN',
+                  'Chinese': 'ASIAN',
+                  'Filipino': 'ASIAN',
+                  'Vietnamese': 'ASIAN',
+                  'Black': 'BLACK',
+                  'White': 'WHITE',
+                  'Hispanic': 'HISPANIC',
+                  'American Indian or Alaska Native': 'INDIAN',
+                  'Other Pacific Islander': 'INDIAN',
+                  'Biracial': 'TWO OR MORE'}
+    df.loc[df.race == 'Other', 'race'] = np.nan
+    df.loc[df.County == 'unknown', 'County'] = np.nan
+    df.loc[df.race == 'Prefer Not to Answer', 'race'] = np.nan
+    for gender in df.GENDER.unique():
+        if gender not in ['Male', 'Female']:
+            # insufficient population data avilable from NCDPI on other genders
+            df.loc[df.GENDER == gender, 'GENDER'] = np.nan
+
+    for k, v in DPImapping.items():
+        df.loc[df.race == k, 'race'] = f"{v}"
+    df.dropna(subset=['race'], inplace=True)
+    df.dropna(subset=['GENDER'], inplace=True)
+
+    # build dictionary of counties, races and their percentages
+    df_population, df_race_all = school_pop_and_race()
+    county_delta = {}
+    all_county_race = {}
+    attrs = list(set(DPImapping.values()))
+    attrs += ['Male', 'Female']
+    # initialize with no participation by any race in any county, by using negative percentages
+    for n, row in df_race_all.iterrows():
+        county_delta[row['County']] = {}
+        for attr in attrs:
+            county_delta[row['County']][attr] = row[f'{attr} pct'] * -1.0
+
+    county_totals = df.groupby(['County'])['County'].size().to_dict()
+    ncsef_county_race = {}
+    for county, county_total in county_totals.items():
+        ncsef_county_race[county] = {}
+        ncsef_county_race[county]['Female'] = 0.0  # default to 0% representation
+        ncsef_county_race[county]['Male'] = 0.0  # default to 0% representation
+        for attr in set(DPImapping.values()):
+            ncsef_county_race[county][attr] = 0.0  # default to 0% representation
+        df_race = df[df.County == county].groupby(['race'])['race'].size().to_dict()
+        df_gender = df[df.County == county].groupby(['GENDER'])['GENDER'].size().to_dict()
+
+        # calc percentages of particpants at county level by race
+        for gender, cnt in df_gender.items():
+            ncsef_county_race[county][gender] = (cnt / county_totals[county]) * 100.0
+            county_delta[county][gender] += ncsef_county_race[county][
+                gender]  # give credit for participation of that race in that county
+
+            # pprint(county_delta[county])
+        for race, cnt in df_race.items():
+            ncsef_county_race[county][race] = (cnt / county_totals[county]) * 100.0
+            county_delta[county][race] += ncsef_county_race[county][
+                race]  # give credit for participation of that race in that county
+
+    df_results = pd.DataFrame.from_dict(county_delta, orient='index')
+    df_results.reset_index(inplace=True)
+    df_results.rename(columns={'index': 'County'}, inplace=True)
+
+    return df_results
 
 
 def fairs_by_county_pop():

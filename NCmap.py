@@ -44,12 +44,18 @@ def NCPlot(df_m, column, plot_local_fairs=True, outputfile="images/fig1.png",
 
     base = df.plot(ax=ax, column=column, cmap=cmap, edgecolor='black',
                    missing_kwds={"color": missingcolor, "edgecolor": missingedge, "hatch": hatch},
-                   legend=False, legend_kwds={"label": f"NCSEF 2023 {column}", "orientation": "horizontal"},
+                   legend=True, legend_kwds={"label": f"NCSEF 2023 {column}", "orientation": "horizontal"},
                    )
     if label_counties:
+        if cmap in ['coolwarm', 'RdYlGn']: # diverging colormaps
+            df.apply( lambda x: ax.annotate(text=x.County, zorder=5, xy=x.geometry.centroid.coords[0], ha='center', fontsize=6, color='black'), axis=1)
+            df[df[column] > labelcolorthreshold].apply( lambda x: ax.annotate(text=x.County, zorder=5, xy=x.geometry.centroid.coords[0], ha='center', fontsize=6, color='white'), axis=1)
+            df[df[column] < labelcolorthreshold*-1].apply( lambda x: ax.annotate(text=x.County, zorder=5, xy=x.geometry.centroid.coords[0], ha='center', fontsize=6, color='white'), axis=1)
+            # df[df[column] <= 20 & df[column] >= -20].apply( lambda x: ax.annotate(text=x.County, zorder=5, xy=x.geometry.centroid.coords[0], ha='center', fontsize=6, color='black'), axis=1)
+        else:
+            df[df[column] > 0].apply( lambda x: ax.annotate(text=x.County, zorder=5, xy=x.geometry.centroid.coords[0], ha='center', fontsize=6, color='#383838'), axis=1)
+            df[df[column] > df[column].max() * labelcolorthreshold].apply( lambda x: ax.annotate(text=x.County, zorder=5, xy=x.geometry.centroid.coords[0], ha='center', fontsize=6, color='white'), axis=1)
         df[df[column].isna()].apply( lambda x: ax.annotate(text=x.County, zorder=5, xy=x.geometry.centroid.coords[0], ha='center', fontsize=6, color='#D3D3D3'), axis=1)
-        df[df[column] > 0].apply( lambda x: ax.annotate(text=x.County, zorder=5, xy=x.geometry.centroid.coords[0], ha='center', fontsize=6, color='#383838'), axis=1)
-        df[df[column] > df[column].max()*labelcolorthreshold].apply( lambda x: ax.annotate(text=x.County, zorder=5, xy=x.geometry.centroid.coords[0], ha='center', fontsize=6, color='white'), axis=1)
 
     if plot_local_fairs:
         gdf = geopandas.GeoDataFrame(geometry=geopandas.points_from_xy(df_fairs.longitude, df_fairs.latitude), crs="EPSG:4326")
