@@ -6,4 +6,8 @@ rawdata
 **.xlsx
 **.cache
 **.sqlite
+**.pickle
+.DS_Store/
+.idea/
+__pycache__/
 **.html
