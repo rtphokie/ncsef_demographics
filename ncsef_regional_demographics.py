@@ -50,7 +50,8 @@ def read_school_lists(geocode=False):
 
 
 def geocode_address(address):
-    url = f'http://api.positionstack.com/v1/forward?access_key=41a52893fc1c7bed592c22a044b3bfcd&query={address}'
+    from keys import positionstack
+    url = f'http://api.positionstack.com/v1/forward?access_key={positionstack}&query={address}'
     longitude = None
     latitude = None
     county = None
@@ -81,7 +82,7 @@ def geocode_address(address):
 def get_child_fair_normalized_regional_data(year=2023):
     try:
         # raise
-        file = open('regional_data', 'rb')
+        file = open('regional_data.pickle', 'rb')
         df = pickle.load(file)
         file.close()
         unique_fairs = len(df['child fair'].unique())
@@ -99,7 +100,7 @@ def get_child_fair_normalized_regional_data(year=2023):
         df['longitude'] = df.apply(get_longitude, axis=1)
         df['latitude'] = df.apply(get_latitude, axis=1)
 
-        file = open('regional_data', 'wb')
+        file = open('regional_data.pickle', 'wb')
         pickle.dump(df, file)
         file.close()
     return df

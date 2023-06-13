@@ -44,7 +44,7 @@ def NCPlot(df_m, column, plot_local_fairs=True, outputfile="images/fig1.png",
 
     base = df.plot(ax=ax, column=column, cmap=cmap, edgecolor='black',
                    missing_kwds={"color": missingcolor, "edgecolor": missingedge, "hatch": hatch},
-                   legend=True, legend_kwds={"label": f"NCSEF 2023 {column}", "orientation": "horizontal"},
+                   legend=False, legend_kwds={"label": f"NCSEF 2023 {column}", "orientation": "horizontal"},
                    )
     if label_counties:
         df[df[column].isna()].apply( lambda x: ax.annotate(text=x.County, zorder=5, xy=x.geometry.centroid.coords[0], ha='center', fontsize=6, color='#D3D3D3'), axis=1)
@@ -60,7 +60,6 @@ def NCPlot(df_m, column, plot_local_fairs=True, outputfile="images/fig1.png",
             for x, y, label in zip(gdf.geometry.x, gdf.geometry.y, df_fairs['child fair']):
                 ax.annotate(label, xy=(x, y), xytext=(random.randint(1,5), random.randint(1,5)), textcoords="offset points", fontsize=2)
 
-    # https://matplotlib.org/tutorials/colors/colormaps.html
     plt.axis('off')
     plt.rcParams['savefig.dpi'] = dpi
     plt.savefig(outputfile, bbox_inches='tight')
