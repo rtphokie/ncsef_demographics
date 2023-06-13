@@ -1,1 +1,9 @@
 rawdata
+/images/
+**.xls
+**.csv
+**.shelf
+**.xlsx
+**.cache
+**.sqlite
+**.html

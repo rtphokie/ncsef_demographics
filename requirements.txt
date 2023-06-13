@@ -1,0 +1,9 @@
+pgeocode
+pandas
+openpyxl
+xlrd
+# maps
+plotly
+kaleido
+requests_cache
+plotly-geo

@@ -7,30 +7,54 @@ filename = 'NCSEF_2023_demographic_raw.xlsx'
 
 from ncsef_regional_demographics import getschools, normalize_child_fair, \
     get_child_fair_normalized_regional_data, \
-    school_pop_and_race, get_school_county, get_school_type, fairs_by_county_pop, \
-    get_longitude, get_latitude
+    school_pop_and_race, get_school_type, fairs_by_county_pop, \
+    get_longitude
 from NCmap import NCPlot
 from pprint import pprint
 
 
 class MapTests(unittest.TestCase):
-    def test_ncmap(self):
-        NCPlot()
+    def test_ncmap_fairs(self):
+        df_m = fairs_by_county_pop()
+        NCPlot(df_m, "fairs per 5k students", plot_local_fairs=True, outputfile='images/fairs_per_5k.png', dpi=600 )
+        # NCPlot(df_m, "students", plot_local_fairs=False, outputfile='images/populations.png')
+        # NCPlot(df_m, "fairs", plot_local_fairs=True, outputfile=f'images/fairs.png', missingcolor='#808080')
+
+    def test_ncmap_race(self):
+        df_population, df_race = school_pop_and_race()
+        race = 'INDIAN'
+        NCPlot(df_race, f"{race} pct", plot_local_fairs=True, outputfile=f'images/{race.lower()}.png',
+               missingcolor='#696969')
+        return
+        for race in ['INDIAN', 'Female', 'HISPANIC', 'BLACK', 'WHITE', 'ASIAN']:
+            NCPlot(df_race, f"{race} pct", plot_local_fairs=True, outputfile=f'images/{race.lower()}.png')
+
 
 class DataTests(unittest.TestCase):
 
     def test_school_couty(self):
-        df_m=fairs_by_county_pop()
+        df_m = fairs_by_county_pop()
         print(df_m)
 
+    def test_racemap(selfp):
+        df_population, df_race = school_pop_and_race()
+        print(df_race)
+
     def test_participating_school_char(self):
-        df = SchoolType(year=2023)
+        df = get_child_fair_normalized_regional_data(year=2023)
         df = df.drop_duplicates(subset='child fair', keep="first")
         print(df.shape)
         # for col in df.columns:
         #     print(col)
         df = df[['child fair', 'SchoolType']]
-        print(df)
+        df_SchoolType_fairs = df.groupby(['SchoolType'])['SchoolType'].size().reset_index(name='fairs')
+        print(df_SchoolType_fairs)
+
+        sc = getschools()
+        df_schools = pd.DataFrame.from_dict(dict(sc), orient='index')
+        # print(df_schools)
+        df_SchoolType_all = df_schools.groupby(['SchoolType'])['SchoolType'].size().reset_index(name='fairs')
+        print(df_SchoolType_all)
 
     def test_get_fair_coords(self):
         df = get_child_fair_normalized_regional_data(year=2023)
@@ -38,17 +62,16 @@ class DataTests(unittest.TestCase):
         df['SchoolType'] = df.apply(get_school_type, axis=1)
         df['longitude'] = df.apply(get_longitude, axis=1)
         # df['latitude'] = df.apply(get_latitude, axis=1)
-        df=df[['child fair',  'SchoolType', 'latitude', 'longitude']]
+        df = df[['child fair', 'SchoolType', 'latitude', 'longitude']]
         print(df.head)
 
         # jkl = get_school_lng(row[''])
 
         # groceries.plot(marker='*', color='green', markersize=5);
+
     #
     # # Check crs
     # groceries = groceries.to_crs(chicago.crs)
-
-
 
     def test_county_demo(self):
         df_pop, df_race = school_pop_and_race()

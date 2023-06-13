@@ -15,3 +15,13 @@ Statistical Profile
 School Year: 2008-2009 (last federaly mandated reporting period)
 Use: Sex and Race demographics by county
 https://digital.ncdcr.gov/digital/collection/p249901coll22/id/92200/rec/2
+
+North Carolina Public Schools Statistal Profile
+file: Pupils_by_Race_and_Sex.xls
+Use: enrolled student counts, demographics by race and sex by school
+http://apps.schools.nc.gov/ords/f?p=145:1
+
+North Carolina Directory of Non-Public Schools - Conventional Schools Edition
+file:Current Open Private Schools - October 04, 2022.csv
+Use: mapping schools by name to county
+https://ncadmin.nc.gov/divisions/non-public-education/private-schools/school-directory

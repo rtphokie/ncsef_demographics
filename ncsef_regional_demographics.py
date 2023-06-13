@@ -184,6 +184,21 @@ def get_school_details(row, columnname='child fair', geocode=False):
             if name == 'Johnsonville Elementary (Harnett)':  # compensating for errors from geocoding service
                 sl[name]['latitude'] = 35.3003442
                 sl[name]['longitude'] = -79.0983509
+            elif name == 'Macon Middle (Macon)':
+                sl[name]['latitude'] = 35.1611022
+                sl[name]['longitude'] = -83.3604421
+            elif name == 'Shoals Elementary (Surry)':
+                sl[name]['latitude'] = 36.333182
+                sl[name]['longitude'] = -80.5062663
+            elif name == 'Western Rockingham Middle (Rockingham)':
+                sl[name]['latitude'] = 36.4023186
+                sl[name]['longitude'] = -79.9813976
+            elif name == 'John W Dillard Academy (Rockingham)':
+                sl[name]['latitude'] = 36.3991173
+                sl[name]['longitude'] = -79.9804079
+            elif name == 'Huntsville Elementary (Rockingham)':
+                sl[name]['latitude'] = 36.330923
+                sl[name]['longitude'] = -79.949532
             elif name == 'Heyward C Bellamy Elem (New Hanover)':
                 sl[name]['latitude'] = 34.1230024
                 sl[name]['longitude'] = -77.9113507
@@ -195,6 +210,10 @@ def get_school_details(row, columnname='child fair', geocode=False):
                 sl[name]['longitude'] = -78.1681031
             else:
                 sl[name]['latitude'], sl[name]['longitude'] = geocode_address(sl[name]['address'])
+        # if round(sl[name]['latitude'],2) == 35.86:
+        #     print(name, round(sl[name]['latitude'], 2), round(sl[name]['longitude'], 2))
+        #     return {'County': 'unknown', 'SchoolType': 'unknown', 'latitude': None, 'longitude': None}
+        # else:
         return sl[name]
     else:
         return {'County': 'unknown', 'SchoolType': 'unknown', 'latitude': None, 'longitude': None}
@@ -355,13 +374,15 @@ def school_pop_and_race():
     df_race.drop(['____LEA Name____'], axis=1, inplace=True)
     for race in ['INDIAN', 'ASIAN', 'HISPANIC', 'BLACK', 'WHITE', 'TWO OR MORE', 'PACIFIC ISLAND']:
         df_race[f"{race} cnt"] = df_race[f"{race} Male"] + df_race[f"{race} Female"]
-        df_race[f"{race} ratio"] = df_race[f"{race} cnt"] / df_race['Total']
+        df_race[f"{race} pct"] = df_race[f"{race} cnt"] / df_race['Total']
         for gender in ['Male', 'Female']:
             df_race[f"{gender} cnt"] = df_race[f"{race} {gender}"] + df_race[f"{gender} cnt"]
             df_race[f"{gender} pct"] = df_race[f"{gender} cnt"] / df_race['Total']
             df_race.drop([f"{race} {gender}"], axis=1, inplace=True)
     df_race['altotal'] = df_race['Male cnt'] + df_race['Female cnt']
     for column in df_race.columns:
+        if ' pct' in column:
+            df_race[column]=df_race[column]*100
         if ' cnt' in column:
             df_race.drop([column], axis=1, inplace=True)
 
